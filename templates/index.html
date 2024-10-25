@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rule Management</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Rule Management System</h1>
+    </header>
+    <div class="container">
+        <div class="form-group">
+            <label for="rule-input">Create a Rule:</label>
+            <textarea id="rule-input" rows="4" placeholder="Enter your rule here..."></textarea>
+        </div>
+        <div class="button-group">
+            <input type="button" id="create-rule-btn" value="Create Rule">
+        </div>
+        <div class="output" id="create-rule-output"></div>
+        
+        <div class="form-group">
+            <label for="combine-rules-input">Combine Rules:</label>
+            <textarea id="combine-rules-input" rows="4" placeholder="Enter your rules here (one per line)..."></textarea>
+        </div>
+        <div class="button-group">
+            <input type="button" id="combine-rules-btn" value="Combine Rules">
+        </div>
+        <div class="output" id="combine-rules-output"></div>
+
+        <div class="form-group">
+            <label for="evaluate-data-input">Evaluate Rule Data:</label>
+            <textarea id="evaluate-data-input" rows="4" placeholder="Enter JSON data here..."></textarea>
+        </div>
+        <div class="form-group">
+            <label for="rule-id-input">Rule ID:</label>
+            <input type="text" id="rule-id-input" placeholder="Enter Rule ID">
+        </div>
+        <div class="button-group">
+            <input type="button" id="evaluate-rule-btn" value="Evaluate Rule">
+        </div>
+        <div class="output" id="evaluate-rule-output"></div>
+    </div>
+
+    <script>
+        document.getElementById('create-rule-btn').onclick = function() {
+            const ruleString = document.getElementById('rule-input').value;
+            fetch('/create_rule', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ rule: ruleString })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const output = document.getElementById('create-rule-output');
+                if (data.error) {
+                    output.innerHTML = `<span class="error">${data.error}</span>`;
+                } else {
+                    output.innerHTML = `<span class="success">${data.status}: ${data.ast}</span>`;
+                }
+            });
+        };
+
+        document.getElementById('combine-rules-btn').onclick = function() {
+            const rulesInput = document.getElementById('combine-rules-input').value.split('\n');
+            fetch('/combine_rules', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ rules: rulesInput })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const output = document.getElementById('combine-rules-output');
+                if (data.error) {
+                    output.innerHTML = `<span class="error">${data.error}</span>`;
+                } else {
+                    output.innerHTML = `<span class="success">${data.status}: ${data.ast}</span>`;
+                }
+            });
+        };
+
+        document.getElementById('evaluate-rule-btn').onclick = function() {
+            const jsonData = document.getElementById('evaluate-data-input').value;
+            const ruleId = document.getElementById('rule-id-input').value;
+            fetch('/evaluate_rule', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ data: JSON.parse(jsonData), rule_id: ruleId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const output = document.getElementById('evaluate-rule-output');
+                if (data.error) {
+                    output.innerHTML = `<span class="error">${data.error}</span>`;
+                } else {
+                    output.innerHTML = `<span class="success">Result: ${data.result}</span>`;
+                }
+            });
+        };
+    </script>
+</body>
+</html>
